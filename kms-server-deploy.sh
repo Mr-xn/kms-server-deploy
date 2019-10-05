@@ -157,6 +157,7 @@ backup_old_vlmcsd() {
 	fi
 }
 start_install() {
+	[[ -f $DAEMON ]] && echo -e "${Info} vlmcsd已经安装..." && exit 1
 	echo -e "${Info} 正在检查当前账号是否有执行权限部署操作..."
 	echo -e "${Info} 正在检查是否已经安装vlmcsd..."
 	echo -e "${Info} 恭喜,系统检查通过,检查是否安装vlmcsd服务端中..."
