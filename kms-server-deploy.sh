@@ -9,7 +9,7 @@ echo "# Version: 1.0.0"
 echo "# Author:Mrxn"
 echo "# Date:04/05/2018"
 echo "# Blog:https://mrxn.net"
-echo "# kms_server:https://kms.mrxn.net"
+echo "# kms_server:kms.mrxn.net"
 echo "#============================================================================="
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
