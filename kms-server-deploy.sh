@@ -259,7 +259,7 @@ vlmcsd_restart() {
 		echo -e "${Info} vlmcsd服务端未启动,启动中..."
 	fi
 	# $DAEMON -L 0.0.0.0:1688 -l vlmcsd.log
-	/etc/init.d/kms start
+	/etc/init.d/kms restart
 	check_pid
 	if [ $STAT = 0 ]; then
 		echo -e "${Info} Succeeded."
