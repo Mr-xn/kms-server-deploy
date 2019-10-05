@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
+# 开机自启脚本来自秋水大佬,感谢！
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 echo "#============================================================================="
 echo "# System Required: CentOS 6+/Debian 6+/Ubuntu 14.04+"
 echo "# Description: deploy the vlmcsd server(windows系列的VL版本KMS激活服务端一键搭建)"
-echo "# Version: 1.0.0"
+echo "# Version: 2.0.0"
 echo "# Author:Mrxn"
-echo "# Date:04/05/2018"
+echo "# Date:05/10/2019"
 echo "# Blog:https://mrxn.net"
 echo "# kms_server:kms.mrxn.net"
 echo "#============================================================================="
@@ -41,7 +42,7 @@ check_vlmcsd_status() {
 	check_DAMON_status
 	check_pid
 	if [ $STAT = 0 ]; then
-		echo -e "${Info} vlmcsd正在运行,放心玩去吧！"
+		echo -e "${Info} vlmcsd正在运行,放心玩去吧！" && exit 1
 	elif [ $STAT = 1 ]; then
 		echo -e "${Tip} 未发现vlmcsd服务,请尝试重启vlmcsd服务端或者是安装vlmcsd服务端"
 	fi
@@ -61,19 +62,46 @@ check_sys() {
 		release="ubuntu"
 	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
+	else
+	    release=""
 	fi
 	bit=$(uname -m)
 }
+check_root
 check_sys
 [[ ${release} != "debian" ]] && [[ ${release} != "ubuntu" ]] && [[ ${release} != "centos" ]] && echo -e "${Error} 本脚本不支持当前系统 ${release} !" && exit 1
+# Get version
+getversion(){
+    if [[ -s /etc/redhat-release ]]; then
+        grep -oE  "[0-9.]+" /etc/redhat-release
+    else
+        grep -oE  "[0-9.]+" /etc/issue
+    fi
+}
+
+# CentOS version
+centosversion(){
+    if [[ x"${release}" == x"centos" ]]; then
+        local code=$1
+        local version="$(getversion)"
+        local main_ver=${version%%.*}
+        if [ "$main_ver" == "$code" ]; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
 # 开始安装vlmcsd依赖
 install_depend() {
 	if [[ ${release} == "centos" ]]; then
-		yum install gcc git make -y
+		yum install wget gcc git make nss curl libcurl -y
 	elif [[ ${release} == "debian" ]] || [[ ${release} == "ubuntu" ]]; then
-		apt-get install gcc git make -y
+		apt-get install wget gcc git make libnss3 curl libcurl3-nss -y
 	fi
-	echo -e "${Info} 依赖安装完毕...安装vlmcsd主程序..."
+	echo -e "${Info} 依赖安装完毕...开始安装vlmcsd主程序..."
 
 }
 check_install_status() {
@@ -83,6 +111,40 @@ check_install_status() {
 	elif [ $STAT = 1 ]; then
 		echo -e "${Error} vlmcsd安装失败!"
 	fi
+}
+# 开机自启动
+auto_start() {
+	if [[ x"${release}" == x"centos" ]]; then
+        if ! wget --no-check-certificate -O /etc/init.d/kms https://raw.githubusercontent.com/Mr-xn/kms-server-deploy/master/kms; then
+            echo -e "${Error} Failed to download KMS Server script."
+            exit 1
+        fi
+    elif [[ x"${release}" == x"debian" || x"${release}" == x"ubuntu" ]]; then
+        if ! wget --no-check-certificate -O /etc/init.d/kms https://raw.githubusercontent.com/Mr-xn/kms-server-deploy/master/kms-debian; then
+            echo -e "${Error} Failed to download KMS Server script."
+            exit 1
+        fi
+    else
+        echo -e "${Error} OS is not be supported, please change to CentOS/Debian/Ubuntu and try again."
+        exit 1
+    fi
+}
+boot_start(){
+    if [[ x"${release}" == x"debian" || x"${release}" == x"ubuntu" ]]; then
+        update-rc.d -f "${1}" defaults
+    elif [[ x"${release}" == x"centos" ]]; then
+        chkconfig --add "${1}"
+        chkconfig "${1}" on
+    fi
+}
+
+boot_stop(){
+    if [[ x"${release}" == x"debian" || x"${release}" == x"ubuntu" ]]; then
+        update-rc.d -f "${1}" remove
+    elif [[ x"${release}" == x"centos" ]]; then
+        chkconfig "${1}" off
+        chkconfig --del "${1}"
+    fi
 }
 # 开始从Wind4的仓库克隆到本地安装
 backup_old_vlmcsd() {
@@ -104,20 +166,24 @@ start_install() {
 	echo -e "${Tip}${Red_font_prefix} 检查完毕,开始安装vlmcsd服务端...${Font_color_suffix}"
 	echo -e "${Info} 依赖安装/检查中..."
 	install_depend
-	mkdir /usr/local/kms
-	cd /usr/local/kms
 	git clone https://github.com/Wind4/vlmcsd.git
-	cd vlmcsd
+	[ -d vlmcsd ] && cd vlmcsd || echo -e "${Error} Failed to git clone vlmcsd."
 	make
-	cd bin
-	mv vlmcsd /usr/local/kms/kms
-	cd /usr/local/kms/
-	rm -rf ./vlmcsd/
-	mv kms vlmcsd
+	if [ $? -ne 0 ]; then
+        echo -e "${Error} 编译KMS 服务端出错,请重试或者将出错信息提交到 https://github.com/Mr-xn/kms-server-deploy/issues."
+        exit 1
+    fi
+	auto_start
+	mkdir /usr/local/kms
+	cp -p bin/vlmcsd /usr/local/kms/
+	chmod 755 /usr/local/kms/vlmcsd
+	chmod 755 /etc/init.d/kms
+	boot_start kms
+    /etc/init.d/kms start
+	check_DAMON_status
 	Add_iptables
 	Save_iptables
-	Set_iptables
-	vlmcsd_start
+	# vlmcsd_start
 	check_install_status
 }
 check_install() {
@@ -136,26 +202,44 @@ check_install() {
 }
 # 设置 防火墙规则
 Add_iptables() {
-	iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 1688 -j ACCEPT
-}
-Del_iptables() {
-	iptables -D INPUT -m state --state NEW -m tcp -p tcp --dport 1688 -j ACCEPT
-}
-Save_iptables() {
-	if [[ ${release} == "centos" ]]; then
-		service iptables save
-	else
-		iptables-save >/etc/iptables.up.rules
+	if centosversion 7; then
+	systemctl status firewalld > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            firewall-cmd --permanent --zone=public --add-port=1688/tcp
+            firewall-cmd --reload
+        else
+			echo -e "${Error} 不存在firewalld 或者firewalld 没有安装，请手动将 1688端口放行."
+		fi
+	elif centosversion 6 || ${release} == "debian" || ${release} == "ubuntu"; then
+		/etc/init.d/iptables status > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            iptables -L -n | grep -i 1688 > /dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 1688 -j ACCEPT
+                /etc/init.d/iptables save
+                /etc/init.d/iptables restart
+            fi
+        else
+			echo -e "${Error} iptables 没有启动或没有安装，请手动将 1688端口放行."
+		fi
 	fi
 }
-Set_iptables() {
-	if [[ ${release} == "centos" ]]; then
-		service iptables save
-		chkconfig --level 2345 iptables on
-	elif [[ ${release} == "debian" ]]; then
-		iptables-save >/etc/iptables.up.rules
-	elif [[ ${release} == "ubuntu" ]]; then
-		iptables-save >/etc/iptables.up.rules
+Del_iptables() {
+	if centosversion 6 || ${release} == "debian" || ${release} == "ubuntu"; then
+		iptables -D INPUT -m state --state NEW -m tcp -p tcp --dport 1688 -j ACCEPT
+		/etc/init.d/iptables save
+		/etc/init.d/iptables restart
+	elif centosversion 7; then
+		firewall-cmd --zone=public --remove-port=1688/tcp --permanent
+		firewall-cmd --reload
+	fi
+}
+Save_iptables() {
+	if centosversion 6 || ${release} == "debian" || ${release} == "ubuntu"; then
+		/etc/init.d/iptables save
+		/etc/init.d/iptables restart
+	elif centosversion 7; then
+		firewall-cmd --reload
 	fi
 }
 
@@ -173,7 +257,8 @@ vlmcsd_restart() {
 	elif [ $STAT = 1 ]; then
 		echo -e "${Info} vlmcsd服务端未启动,启动中..."
 	fi
-	$DAEMON -L 0.0.0.0:1688 -l vlmcsd.log
+	# $DAEMON -L 0.0.0.0:1688 -l vlmcsd.log
+	/etc/init.d/kms start
 	check_pid
 	if [ $STAT = 0 ]; then
 		echo -e "${Info} Succeeded."
@@ -218,6 +303,8 @@ uninstall_vlmcsd() {
 	echo -e "${Tip} 正在卸载vlmcsd服务端..."
 	vlmcsd_stop
 	rm -rf $DAEMON
+	rm -f /etc/init.d/kms
+	rm -f /var/log/vlmcsd.log
 	echo -e "${Tip} 卸载vlmcsd服务端完毕..."
 	Del_iptables
 	Save_iptables
