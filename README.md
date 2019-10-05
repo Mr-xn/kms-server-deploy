@@ -11,7 +11,7 @@
 ## 在你的服务器上，执行如下命令即可：
 
 ```shell
-wget https://raw.githubusercontent.com/Mr-xn/kms-server-deploy/master/kms-server-deploy.sh && bash kms-server-deploy.sh
+wget --no-check-certificate https://raw.githubusercontent.com/Mr-xn/kms-server-deploy/master/kms-server-deploy.sh && bash kms-server-deploy.sh
 ```
 
 ## 不会的,请看下面的我的截图操作就知道了
@@ -40,3 +40,8 @@ wget https://raw.githubusercontent.com/Mr-xn/kms-server-deploy/master/kms-server
 
 ### 成功激活
 ![success.png](https://github.com/Mr-xn/kms-server-deploy/blob/master/image/success.png)
+
+> 更新:  
+> 添加自启脚本，借鉴至秋水大佬.  
+> PS:这个是从vlmcsd仓库拉取编译,安装的时候vlmcsd就是最新版本.
+  
