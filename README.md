@@ -44,4 +44,4 @@ wget --no-check-certificate https://raw.githubusercontent.com/Mr-xn/kms-server-d
 > 更新:  
 > 添加自启脚本，借鉴至秋水大佬.  
 > PS:这个是从vlmcsd仓库拉取编译,安装的时候vlmcsd就是最新版本.
-  
+> 在centos6/7 ubuntu 16 测试成功.如果有任何问题，欢迎提交issue或者是博客留言。  
