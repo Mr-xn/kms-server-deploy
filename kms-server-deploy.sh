@@ -180,7 +180,7 @@ start_install() {
 	chmod 755 /usr/local/kms/vlmcsd
 	chmod 755 /etc/init.d/kms
 	boot_start kms
-    /etc/init.d/kms start
+    /etc/init.d/kms restart
 	check_DAMON_status
 	Add_iptables
 	Save_iptables
@@ -291,7 +291,8 @@ vlmcsd_start() {
 		exit 0
 	elif [ $STAT = 1 ]; then
 		echo -e "${Info} vlmcsd服务端未启动,启动中..."
-		$DAEMON -L 0.0.0.0:1688 -l vlmcsd.log
+		# $DAEMON -L 0.0.0.0:1688 -l vlmcsd.log
+		/etc/init.d/kms restart
 	fi
 	check_pid
 	if [ $STAT = 0 ]; then
