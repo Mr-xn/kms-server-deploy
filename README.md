@@ -41,6 +41,9 @@ wget --no-check-certificate https://raw.githubusercontent.com/Mr-xn/kms-server-d
 ### 成功激活
 ![success.png](https://github.com/Mr-xn/kms-server-deploy/blob/master/image/success.png)
 
+### cmd（管理员权限）激活office2019专业增强版(VL版本)  
+![KMS激活office2019成功](./image/KMS激活office2019成功.png)
+
 > 更新:  
 > 添加自启脚本，借鉴至秋水大佬.  
 > PS:这个是从vlmcsd仓库拉取编译,安装的时候vlmcsd就是最新版本.  
