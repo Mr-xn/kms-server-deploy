@@ -1,10 +1,11 @@
-chcp 936
-@echo off&PUSHD  &TITLE Mrxn_Blog_KMS激活工具
-mode con cols=75 lines=25
+chcp 936 
+@echo off&PUSHD  &TITLE Mrxn_Blog_KMS激活工具 
+mode con cols=75 lines=25 
 setlocal EnableDelayedExpansion&color 70 & cd /d "%~dp0"
 %1 %2
-ver|find "5.">nul&&goto :start
-mshta vbscript:createobject("shell.application").shellexecute("%~s0","goto :start","","runas",1)(window.close)&goto :eof
+ver|find "5.">nul&&goto :start 
+mshta vbscript:createobject("shell.application").shellexecute("%~s0","goto :start","","runas",1) 
+(window.close)&goto :eof 
 
 :start
 set KMS_Sev=kms.mrxn.net
