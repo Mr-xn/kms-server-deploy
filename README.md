@@ -48,3 +48,6 @@ wget --no-check-certificate https://raw.githubusercontent.com/Mr-xn/kms-server-d
 > 添加自启脚本，借鉴至秋水大佬.  
 > PS:这个是从vlmcsd仓库拉取编译,安装的时候vlmcsd就是最新版本.  
 > 在centos6/7 ubuntu 16 测试成功.如果有任何问题，欢迎提交issue或者是博客留言. 
+>
+> update：mrxn_net_kms.cmd 的编码和换行为Windows下的CRLF，避免下载后打开闪退[issues【#3】](https://github.com/Mr-xn/kms-server-deploy/issues/3)，请下载ZIP的压缩激活脚本再解压使用。
+
